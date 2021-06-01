@@ -7,9 +7,9 @@ import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/utils/Address.sol";
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 
-import "./interfaces/IStake.sol";
+import "./interfaces/IStaker.sol";
 
-contract Staker is Ownable, IStake {
+contract Staker is Ownable, IStaker {
     using SafeMath for uint256;
     using Address for address;
     
@@ -23,8 +23,8 @@ contract Staker is Ownable, IStake {
     event Unstake(address indexed account, uint256 timestamp, uint256 value);
     event Lock(address indexed account, uint256 timestamp, uint256 unlockTime, address locker);
 
-    constructor() {
-        _token = IERC20(0xB6F0576d3380264972153F569A2B325D30970c27);
+    constructor(address _tokenAddress) {
+        _token = IERC20(_tokenAddress);
     }
 
     function stakedBalance(address account) external view override returns (uint256) {
