@@ -1,8 +1,8 @@
-const TestToken1 = artifacts.require("TestToken1");
+const PolCoin = artifacts.require("PolCoin");
 const Staker = artifacts.require("Staker");
 
 module.exports = function (deployer) {
-  deployer.deploy(TestToken1).then(function() {
-    return deployer.deploy(Staker, TestToken1.address);
+  deployer.deploy(PolCoin).then(function() {
+    return deployer.deploy(Staker, PolCoin.address);
   })
 };

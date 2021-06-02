@@ -7,7 +7,7 @@ import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/utils/Address.sol";
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 
-import "./interfaces/IStaker.sol";
+import "./../interfaces/IStaker.sol";
 
 contract Staker is Ownable, IStaker {
     using SafeMath for uint256;

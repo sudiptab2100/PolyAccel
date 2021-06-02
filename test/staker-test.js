@@ -2,14 +2,14 @@ const { assert, expect } = require("chai")
 const chai = require("chai")
 chai.use(require('chai-as-promised'))
 
-const TestToken1 = artifacts.require("TestToken1")
+const PolCoin = artifacts.require("PolCoin")
 const Staker = artifacts.require("Staker")
 
 contract("Staker", accounts => {
 
     var token, staker
     beforeEach(async () => {
-        token = await TestToken1.new()
+        token = await PolCoin.new()
         staker = await Staker.new(token.address)
     })
 
