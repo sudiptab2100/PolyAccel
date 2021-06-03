@@ -16,13 +16,17 @@ contract IDO is Ownable, ReentrancyGuard {
     uint256 public idoPrice; // Price of 1 Tokens in Wei
 
     // Time Stamps
-    uint256 public constant unit = 1 seconds;
+    uint256 public constant unit = 1 hours; // use seconds for testing
     uint256 public constant lockDuration = 7 * 24 * unit;
     uint256 public constant regDuration = 48 * unit;
     uint256 public constant saleStartsAfter = regDuration + 24 * unit;
     uint256 public constant saleDuration = 12 * unit;
     uint256 public regStarts;
     uint256 public saleStarts;
+
+    event Initialization(uint256 regStart, uint256 saleStart);
+    event Registration(address indexed account, uint256 poolNo);
+    event Purchase(address indexed, uint256 tokens, uint256 price);
 
     struct UserLog {
         bool isRegistered;
@@ -106,6 +110,8 @@ contract IDO is Ownable, ReentrancyGuard {
         regStarts = time;
         saleStarts = regStarts + saleStartsAfter;
         require(idoToken.balanceOf(address(this)) >= idoAmount, "Not Enough Tokens In Contract");
+
+        emit Initialization(regStarts, saleStarts);
     }
 
     function register(uint256 _poolNo) 
@@ -118,6 +124,8 @@ contract IDO is Ownable, ReentrancyGuard {
         pools[_poolNo].participants += 1;
 
         iStaker.lock(msg.sender, block.timestamp + lockDuration);
+
+        emit Registration(msg.sender, _poolNo);
     }
 
     function tokensAndPrice(uint256 _poolNo) public view returns(uint256, uint256) {
@@ -145,6 +153,8 @@ contract IDO is Ownable, ReentrancyGuard {
 
         usr.purchased = true;
         idoToken.transfer(msg.sender, amount);
+
+        emit Purchase(msg.sender, amount, price);
     }
 
     function recoverEth(address to) external onlyOwner {
