@@ -16,7 +16,7 @@ contract IDO is Ownable, ReentrancyGuard {
     uint256 public idoPrice; // Price of 1 Tokens in Wei
 
     // Time Stamps
-    uint256 public constant unit = 1 hours;
+    uint256 public constant unit = 1 seconds;
     uint256 public constant lockDuration = 7 * 24 * unit;
     uint256 public constant regDuration = 48 * unit;
     uint256 public constant saleStartsAfter = regDuration + 24 * unit;
@@ -102,8 +102,10 @@ contract IDO is Ownable, ReentrancyGuard {
     }
 
     function initialize(uint256 time) external onlyOwner notInitialized {
+        require(time >= block.timestamp, "IDO Can't Be in Past");
         regStarts = time;
         saleStarts = regStarts + saleStartsAfter;
+        require(idoToken.balanceOf(address(this)) >= idoAmount, "Not Enough Tokens In Contract");
     }
 
     function register(uint256 _poolNo) 
@@ -143,6 +145,19 @@ contract IDO is Ownable, ReentrancyGuard {
 
         usr.purchased = true;
         idoToken.transfer(msg.sender, amount);
+    }
+
+    function recoverEth(address to) external onlyOwner {
+        (bool sent,) = address(to).call{value : address(this).balance}("");
+        require(sent, 'Unable To Recover Eth');
+    }
+
+    function recoverERC20(
+        address tokenAddress, 
+        address to
+    ) external onlyOwner {
+        IERC20Metadata tok = IERC20Metadata(tokenAddress);
+        tok.transfer(to, tok.balanceOf(address(this)));
     }
 
 }

@@ -15,7 +15,6 @@ contract("Staker", accounts => {
 
     describe('Testing Staker', () => {
         let val = '100000000000000000000'
-        let clock
         beforeEach(async () => {
             await token.transfer(accounts[1], val, { from: accounts[0] })
             await token.transfer(accounts[2], val, { from: accounts[0] })
