@@ -2,10 +2,10 @@
 pragma solidity ^0.8.0;
 
 import './../interfaces/IStaker.sol';
-import "openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "openzeppelin-solidity/contracts/access/Ownable.sol";
-import "openzeppelin-solidity/contracts/utils/Context.sol";
-import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract IDO is Ownable, ReentrancyGuard {
 

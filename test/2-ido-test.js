@@ -91,7 +91,7 @@ contract("IDO", accounts => {
         })
     })
 
-    describe('Testing IDO Registration(Wile Initialized)', () => {
+    describe('Testing IDO Registration(While Initialized)', () => {
 
         beforeEach(async () => {
             var initTime = Math.floor(Date.now() / 1000) + 5
