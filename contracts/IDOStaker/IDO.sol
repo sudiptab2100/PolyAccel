@@ -128,6 +128,10 @@ contract IDO is Ownable, ReentrancyGuard {
         emit Registration(msg.sender, _poolNo);
     }
 
+    function getPoolNo(address account) external view returns(uint256) {
+        return userlog[account].registeredPool;
+    }
+
     function tokensAndPrice(uint256 _poolNo) public view returns(uint256, uint256) {
 
         PoolInfo storage pool = pools[_poolNo];

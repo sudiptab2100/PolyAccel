@@ -71,6 +71,13 @@ contract("IDO", accounts => {
 
     describe('Testing IDO Without Initializing', () => {
 
+        it('Pool No Test', async () => {
+            const poolNo = (await ido.getPoolNo(accounts[1])).toNumber()
+            // account 1 didn't register to any pool yet
+            // so pool no should be 0
+            assert.equal(poolNo, 0)
+        })
+
         it('Registration(fail test)', async () => {
             await expect(
                 ido.register(1, { from: accounts[0] })
@@ -88,7 +95,7 @@ contract("IDO", accounts => {
 
         beforeEach(async () => {
             var initTime = Math.floor(Date.now() / 1000) + 5
-            ido.initialize(initTime, { from: accounts[0] })
+            await ido.initialize(initTime, { from: accounts[0] })
         })
 
         it('Registration before time fails', async () => {
@@ -100,7 +107,7 @@ contract("IDO", accounts => {
         it('Register in Registration period', async () => {
             await timeout(5) // wait 5s for registration to start
 
-            ido.register(1, { from: accounts[1] })
+            await ido.register(1, { from: accounts[1] })
         })
 
         it('Registration after time fails', async () => {
@@ -152,6 +159,12 @@ contract("IDO", accounts => {
             await ido.register(4, { from: accounts[5] })
             await ido.register(5, { from: accounts[6] })
             await ido.register(5, { from: accounts[7] })
+        })
+
+        it('Pool No Test', async () => {
+            const poolNo = (await ido.getPoolNo(accounts[4])).toNumber()
+            // account 4 registered in poolNo 3
+            assert.equal(poolNo, 3)
         })
 
         it('Purchase before time(fails)', async () => {
