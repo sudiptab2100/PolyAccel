@@ -16,7 +16,7 @@ contract IDO is Ownable, ReentrancyGuard {
     uint256 public idoPrice; // Price of 1 Tokens in Wei
 
     // Time Stamps
-    uint256 public constant unit = 1 hours; // use seconds for testing
+    uint256 public constant unit = 1 seconds; // use seconds for testing
     uint256 public constant lockDuration = 7 * 24 * unit;
     uint256 public constant regDuration = 48 * unit;
     uint256 public constant saleStartsAfter = regDuration + 24 * unit;
@@ -119,16 +119,20 @@ contract IDO is Ownable, ReentrancyGuard {
     validRegistration 
     verifyPool(_poolNo)
     nonReentrant {
-        userlog[msg.sender].isRegistered = true;
-        userlog[msg.sender].registeredPool = _poolNo;
-        pools[_poolNo].participants += 1;
-
         iStaker.lock(msg.sender, block.timestamp + lockDuration);
+        _register(msg.sender, _poolNo);
+    }
+
+    function _register(address account, uint256 _poolNo) internal {
+        userlog[account].isRegistered = true;
+        userlog[account].registeredPool = _poolNo;
+        pools[_poolNo].participants += 1;
+        
 
         emit Registration(msg.sender, _poolNo);
     }
 
-    function getPoolNo(address account) external view returns(uint256) {
+    function getPoolNo(address account) public view returns(uint256) {
         return userlog[account].registeredPool;
     }
 

@@ -55,8 +55,7 @@ contract Staker is Ownable, IStaker {
         emit Unstake(_msgSender(), block.timestamp, value);
     }
 
-    function lock(address user, uint256 unlock_time) external override {
-        require(_isIDO[_msgSender()],"Staker: only IDOs can lock");
+    function lock(address user, uint256 unlock_time) external override onlyIDO {
         require(unlock_time >  block.timestamp, "Staker: unlock is in the past");
         if (_unlockTime[user] < unlock_time) {
             _unlockTime[user] = unlock_time;
