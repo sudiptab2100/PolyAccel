@@ -13,8 +13,8 @@ function timeout(s) {
 
 contract("IDO", accounts => {
 
-    var idoAmount = '10000000000000000000000' // 10000 Tokens
-    var pricePerToken = '1000000000000000' // 0.001 Eth
+    var idoAmount =     '10000000000000000000000' // 10000 Tokens
+    var totalPrice = '10000000000000000000' // 0.001 * 10000 = 10 Eth
 
     var poolMin = [
         '100000000000000000000', 
@@ -35,7 +35,7 @@ contract("IDO", accounts => {
             polCoin.address,
             testToken.address,
             idoAmount,
-            pricePerToken
+            totalPrice
         )
         
         // Transfer PolCoins to accounts
@@ -168,7 +168,7 @@ contract("IDO", accounts => {
         })
 
         it('Purchase before time(fails)', async () => {
-            const price = (await ido.tokensAndPrice(1))[1]
+            const price = (await ido.tokensAndPriceByPoolNo(1))[1]
             await expect(
                 ido.buyNow({ from: accounts[1], value: price })
             ).to.be.rejected
@@ -177,7 +177,7 @@ contract("IDO", accounts => {
         it('Purchase in Sale period', async () => {
             await timeout(saleStartsAfter)
 
-            const price = (await ido.tokensAndPrice(1))[1]
+            const price = (await ido.tokensAndPriceByPoolNo(1))[1]
             await ido.buyNow({ from: accounts[1], value: price })
 
             const usr = await ido.userlog(accounts[1])
@@ -194,7 +194,7 @@ contract("IDO", accounts => {
         it('Purchase After Sale Period(fails)', async () => {
             await timeout(saleStartsAfter + 12 + 1)
 
-            let price = (await ido.tokensAndPrice(1))[1]
+            let price = (await ido.tokensAndPriceByPoolNo(1))[1]
             await expect(
                 ido.buyNow({ from: accounts[1], value: price })
             ).to.be.rejected
@@ -219,7 +219,7 @@ contract("IDO", accounts => {
         it('Recover Eth', async () => {
             await timeout(saleStartsAfter) // Wait for sale to start
 
-            let price = (await ido.tokensAndPrice(1))[1]
+            let price = (await ido.tokensAndPriceByPoolNo(1))[1]
             await ido.buyNow({ 
                 from: accounts[1],
                 value: price

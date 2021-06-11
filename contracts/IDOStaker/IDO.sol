@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import './../interfaces/IStaker.sol';
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract IDO is Ownable, ReentrancyGuard {
@@ -12,11 +11,11 @@ contract IDO is Ownable, ReentrancyGuard {
     IStaker public iStaker;
     IERC20Metadata public nativeToken; // The token staked
     IERC20Metadata public idoToken; // The token sale in iDO
-    uint256 public idoAmount; // Amount of Tokens to be Sold
-    uint256 public idoPrice; // Price of 1 Tokens in Wei
+    uint256 public idoTokenSum; // Amount of Tokens to be Sold
+    uint256 public idoTotalPrice; // Price of 1 Tokens in Wei
 
     // Time Stamps
-    uint256 public constant unit = 1 seconds; // use seconds for testing
+    uint256 public constant unit = 1 hours; // use seconds for testing
     uint256 public constant lockDuration = 7 * 24 * unit;
     uint256 public constant regDuration = 48 * unit;
     uint256 public constant saleStartsAfter = regDuration + 24 * unit;
@@ -84,15 +83,15 @@ contract IDO is Ownable, ReentrancyGuard {
         address _stakerAddress,
         address _nativeTokenAddress,
         address _idoTokenAddress,
-        uint256 _idoAmount,
+        uint256 _idoTokenSum,
         uint256 _price
     ) {
         
         iStaker = IStaker(_stakerAddress);
         nativeToken = IERC20Metadata(_nativeTokenAddress);
         idoToken = IERC20Metadata(_idoTokenAddress);
-        idoAmount = _idoAmount;
-        idoPrice = _price;
+        idoTokenSum = _idoTokenSum;
+        idoTotalPrice = _price;
 
         uint256 dec = uint256(nativeToken.decimals());
         pools.push(PoolInfo("Null", 0, 0, 0));
@@ -109,7 +108,7 @@ contract IDO is Ownable, ReentrancyGuard {
         require(time >= block.timestamp, "IDO Can't Be in Past");
         regStarts = time;
         saleStarts = regStarts + saleStartsAfter;
-        require(idoToken.balanceOf(address(this)) >= idoAmount, "Not Enough Tokens In Contract");
+        require(idoToken.balanceOf(address(this)) >= idoTokenSum, "Not Enough Tokens In Contract");
 
         emit Initialization(regStarts, saleStarts);
     }
@@ -136,16 +135,20 @@ contract IDO is Ownable, ReentrancyGuard {
         return userlog[account].registeredPool;
     }
 
-    function tokensAndPrice(uint256 _poolNo) public view returns(uint256, uint256) {
+    function getRegistrationStatus(address account) public view returns(bool) {
+        return userlog[account].isRegistered;
+    }
+
+    function tokensAndPriceByPoolNo(uint256 _poolNo) public view returns(uint256, uint256) {
 
         PoolInfo storage pool = pools[_poolNo];
 
         if(_poolNo == 0 || pool.participants == 0) {
             return (0, 0);
         }
-        uint256 dec = uint256(idoToken.decimals());
-        uint256 tokenAmount = (idoAmount * pool.weight) / (totalWeight * pool.participants); // Token Amount per Participants
-        uint256 price = (tokenAmount * idoPrice) / (10 ** dec);
+
+        uint256 tokenAmount = (idoTokenSum * pool.weight) / (totalWeight * pool.participants); // Token Amount per Participants
+        uint256 price = (idoTotalPrice * pool.weight) / (totalWeight * pool.participants); // Token Amount per Participants
 
         return (tokenAmount, price);
     }
@@ -155,7 +158,7 @@ contract IDO is Ownable, ReentrancyGuard {
     validSale
     nonReentrant {
         UserLog storage usr = userlog[msg.sender];
-        (uint256 amount, uint256 price) = tokensAndPrice(usr.registeredPool);
+        (uint256 amount, uint256 price) = tokensAndPriceByPoolNo(usr.registeredPool);
         require(price != 0 && amount != 0, "Values Can't Be Zero");
         require(price == msg.value, "Not Valid Eth Amount");
 

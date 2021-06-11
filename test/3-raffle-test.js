@@ -14,7 +14,7 @@ function timeout(s) {
 contract("RaffleWrap", accounts => {
 
     var idoAmount = '10000000000000000000000' // 10000 Tokens
-    var pricePerToken = '1000000000000000' // 0.001 Eth
+    var totalPrice = '10000000000000000000' // 0.001 * 10000 = 10 Eth
 
     let polCoin, testToken, staker, raffle
     beforeEach(async () => {
@@ -27,7 +27,7 @@ contract("RaffleWrap", accounts => {
             polCoin.address,
             testToken.address,
             idoAmount,
-            pricePerToken
+            totalPrice
         )
 
         // Transfer PolCoins to accounts
@@ -60,7 +60,7 @@ contract("RaffleWrap", accounts => {
     })
 
     it('Rand Winner Test', async () => {
-        var initTime = Math.floor(Date.now() / 1000) + 30
+        var initTime = Math.floor(Date.now() / 1000) + 20
         await raffle.initialize(initTime)
 
         await polCoin.approve(raffle.address, '100000000000000000000', { from: accounts[0] })
@@ -73,7 +73,7 @@ contract("RaffleWrap", accounts => {
         await raffle.buyTickets(30, { from: accounts[2] })
         // await raffle.buyTickets(30, { from: accounts[3] })
 
-        await timeout(30)
+        await timeout(20)
         await raffle.fulfillTest(
             '0x11784bfa961ea00360336b7dfda4504f3e5e01a6035d89a9464ccdf8c73ac1b0', 
             '77626901581511883625746798795701147174388658559238937904298300184740954966236'

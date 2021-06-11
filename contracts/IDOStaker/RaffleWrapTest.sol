@@ -161,7 +161,7 @@ contract RaffleWrapTest is IDO, RandomTest {
             address account = list[i];
             uint256 _poolNo = 2; // Raffle Entry Pool
 
-            if(getPoolNo(account) == 0) _register(account, _poolNo);
+            if(!getRegistrationStatus(account)) _register(account, _poolNo);
         }
     }
 
