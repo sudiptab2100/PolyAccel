@@ -96,13 +96,14 @@ contract RaffleWrap is IDO, Random {
     uint256 public ticketPrice = 3 * 10 ** 18; // Price of a ticket(no. of tokens)
 
     modifier raffleParticipationPeriod() {
-        require(regStarts >= block.timestamp, "Raffle: Can't Participate Now");
+        require(regStarts <= block.timestamp, "Raffle: Participation Didn't Begin");
+        require(regStarts + regDuration >= block.timestamp, "Raffle: Participation Ended");
         _;
     }
 
     modifier raffleResultPeriod() {
-        require(regStarts <= block.timestamp && isInitialized, "Registration Not Started Yet");
-        require(regStarts + regDuration >= block.timestamp, "Registration Ended");
+        require(regStarts + regDuration <= block.timestamp, "Raffle: Participation Didn't End");
+        require(saleStarts >= block.timestamp, "Raffle: Out Of Time");
         _;
     }
 
@@ -125,6 +126,7 @@ contract RaffleWrap is IDO, Random {
     
     // Buy Tickets
     function buyTickets(uint256 _noOfTickets) external raffleParticipationPeriod nonReentrant {
+        require(!getRegistrationStatus(msg.sender), "Already Participated In IDO");
         uint256 nextTicket = ticketsSold;
         nativeToken.transferFrom(msg.sender, owner(), _noOfTickets * ticketPrice);
 
