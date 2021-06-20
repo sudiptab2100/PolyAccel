@@ -14,6 +14,8 @@ contract IDO is Ownable, ReentrancyGuard {
     uint256 public idoTokenSum; // Amount of Tokens to be Sold
     uint256 public idoTotalPrice; // Price of 1 Tokens in Wei
 
+    uint256 public remainingIDOTokens; // Tokens Not Sold Yet
+
     // Time Stamps
     uint256 public constant unit = 1 hours; // use seconds for testing
     uint256 public constant lockDuration = 7 * 24 * unit;
@@ -93,6 +95,8 @@ contract IDO is Ownable, ReentrancyGuard {
         idoTokenSum = _idoTokenSum;
         idoTotalPrice = _price;
 
+        remainingIDOTokens = idoTokenSum;
+
         uint256 dec = uint256(nativeToken.decimals());
         pools.push(PoolInfo("Null", 0, 0, 0));
         pools.push(PoolInfo("Knight", 100 * 10**dec, 2, 0));
@@ -163,6 +167,7 @@ contract IDO is Ownable, ReentrancyGuard {
         require(price == msg.value, "Not Valid Eth Amount");
 
         usr.purchased = true;
+        remainingIDOTokens -= amount;
         idoToken.transfer(msg.sender, amount);
 
         emit Purchase(msg.sender, amount, price);
