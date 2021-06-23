@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract IDO is Ownable, ReentrancyGuard {
+abstract contract IDO is Ownable, ReentrancyGuard {
 
     IStaker public iStaker;
     IERC20Metadata public nativeToken; // The token staked
@@ -35,6 +35,7 @@ contract IDO is Ownable, ReentrancyGuard {
         bool purchased;
     }
     mapping(address => UserLog) public userlog;
+    address[] public participantList;
 
     bool public isInitialized;
 
@@ -131,12 +132,17 @@ contract IDO is Ownable, ReentrancyGuard {
         userlog[account].registeredPool = _poolNo;
         pools[_poolNo].participants += 1;
         
+        participantList.push(account);
 
         emit Registration(msg.sender, _poolNo);
     }
 
     function getPoolNo(address account) public view returns(uint256) {
         return userlog[account].registeredPool;
+    }
+
+    function noOfParticipants() public view returns(uint256) {
+        return participantList.length;
     }
 
     function getRegistrationStatus(address account) public view returns(bool) {
@@ -157,12 +163,23 @@ contract IDO is Ownable, ReentrancyGuard {
         return (tokenAmount, price);
     }
 
+    function allocationByAddress(address account) public view returns(uint256 tokens, uint256 price) {
+        (tokens, price) = tokensAndPriceByPoolNo(userlog[account].registeredPool); // Normal Allocation
+        (uint256 rTokens, uint256 rPrice) = _raffleAllocation(account); // Raffle Allocation
+
+        tokens += rTokens;
+        price += rPrice;
+    }
+
+    // This will be implemented in RaffleWrap
+    function _raffleAllocation(address account) internal view virtual returns(uint256 tokens, uint256 price);
+
     function buyNow() external 
     payable 
     validSale
     nonReentrant {
         UserLog storage usr = userlog[msg.sender];
-        (uint256 amount, uint256 price) = tokensAndPriceByPoolNo(usr.registeredPool);
+        (uint256 amount, uint256 price) = allocationByAddress(msg.sender);
         require(price != 0 && amount != 0, "Values Can't Be Zero");
         require(price == msg.value, "Not Valid Eth Amount");
 

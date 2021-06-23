@@ -5,7 +5,7 @@ chai.use(require('chai-as-promised'))
 const PolCoin = artifacts.require("PolCoin")
 const TestToken = artifacts.require("TestToken")
 const Staker = artifacts.require("Staker")
-const IDO = artifacts.require("IDO")
+const IDO = artifacts.require("RaffleWrapTest")
 
 function timeout(s) {
     return new Promise(resolve => setTimeout(resolve, s * 1000));

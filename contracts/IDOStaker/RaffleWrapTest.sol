@@ -139,6 +139,10 @@ contract RaffleWrapTest is IDO, RandomTest {
         ticketsSold += _noOfTickets;
     }
 
+    function _raffleAllocation(address account) internal view override returns(uint256 tokens, uint256 price) {
+        
+    }
+
     // Generates The Random Winners
     function genRandom() external once raffleResultPeriod nonReentrant {
         uint256 seed = uint256(keccak256(abi.encodePacked(msg.sender)));

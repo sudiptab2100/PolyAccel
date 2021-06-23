@@ -92,8 +92,10 @@ contract RaffleWrap is IDO, Random {
     mapping(uint256 => address) public ticketToOwner; // owner of a ticket
     mapping(address => uint256) public addressToTicketCount; // No Of Tickets Owned By an Address
     mapping(address => uint256[]) public addressToTicketsOwned; // Tickets That an address own
+    mapping(address => bool) public hasWonRaffle;
 
-    uint256 public ticketPrice = 3 * 10 ** 18; // Price of a ticket(no. of tokens)
+    uint256 public constant RAFFLE_POOL = 2;
+    uint256 public constant ticketPrice = 3 * 10 ** 18; // Price of a ticket(no. of tokens)
 
     modifier raffleParticipationPeriod() {
         require(regStarts <= block.timestamp, "Raffle: Participation Didn't Begin");
@@ -126,7 +128,7 @@ contract RaffleWrap is IDO, Random {
     
     // Buy Tickets
     function buyTickets(uint256 _noOfTickets) external raffleParticipationPeriod nonReentrant {
-        require(!getRegistrationStatus(msg.sender), "Already Participated In IDO");
+        require(isRaffleEligible(msg.sender), "Already Participated In IDO");
         uint256 nextTicket = ticketsSold;
         nativeToken.transferFrom(msg.sender, owner(), _noOfTickets * ticketPrice);
 
@@ -137,6 +139,18 @@ contract RaffleWrap is IDO, Random {
 
         addressToTicketCount[msg.sender] += _noOfTickets;
         ticketsSold += _noOfTickets;
+    }
+
+    // Check if Account Is Eligible For Raffle Or Not
+    function isRaffleEligible(address account) public view returns(bool) {
+        return !getRegistrationStatus(account) || getPoolNo(account) != RAFFLE_POOL;
+    }
+
+    function _raffleAllocation(address account) internal view override returns(uint256 tokens, uint256 price) {
+        tokens = price = 0;
+        if(hasWonRaffle[account]) {
+            (tokens, price) = tokensAndPriceByPoolNo(RAFFLE_POOL);
+        }
     }
 
     // Generates The Random Winners
@@ -157,9 +171,13 @@ contract RaffleWrap is IDO, Random {
         address[] memory list = _getWinners();
         for(uint256 i=0; i<list.length; i++) {
             address account = list[i];
-            uint256 _poolNo = 2; // Raffle Entry Pool
+            uint256 _poolNo = RAFFLE_POOL; // Raffle Entry Pool
 
             if(!getRegistrationStatus(account)) _register(account, _poolNo);
+            else if(getPoolNo(account) != RAFFLE_POOL) {
+                hasWonRaffle[account] = true;
+                pools[_poolNo].participants++;
+            }
         }
     }
 
