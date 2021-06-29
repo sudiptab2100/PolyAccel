@@ -19,13 +19,14 @@ abstract contract IDO is Ownable, ReentrancyGuard {
     // Time Stamps
     uint256 public constant unit = 1 hours; // use seconds for testing
     uint256 public constant lockDuration = 7 * 24 * unit;
-    uint256 public constant regDuration = 48 * unit;
+    uint256 public constant regDuration = 5 * 24 * unit;
     uint256 public constant saleStartsAfter = regDuration + 24 * unit;
-    uint256 public constant saleDuration = 12 * unit;
+    uint256 public constant saleDuration = 24 * unit;
+    uint256 public constant fcfsDuration = 24 * unit;
     uint256 public regStarts;
     uint256 public saleStarts;
+    uint256 public fcfsStarts;
 
-    event Initialization(uint256 regStart, uint256 saleStart);
     event Registration(address indexed account, uint256 poolNo);
     event Purchase(address indexed, uint256 tokens, uint256 price);
 
@@ -100,22 +101,13 @@ abstract contract IDO is Ownable, ReentrancyGuard {
 
         uint256 dec = uint256(nativeToken.decimals());
         pools.push(PoolInfo("Null", 0, 0, 0));
-        pools.push(PoolInfo("Knight", 100 * 10**dec, 2, 0));
-        pools.push(PoolInfo("Bishop", 500 * 10**dec, 3, 0));
-        pools.push(PoolInfo("Rook", 1000 * 10**dec, 4, 0));
-        pools.push(PoolInfo("King", 2000 * 10**dec, 5, 0));
-        pools.push(PoolInfo("Queen", 4000 * 10**dec, 6, 0));
-        totalWeight = 20;
+        pools.push(PoolInfo("Knight", 1000 * 10**dec, 1,  0));
+        pools.push(PoolInfo("Bishop", 1500 * 10**dec, 4,  0));
+        pools.push(PoolInfo("Rook",   3000 * 10**dec, 8,  0));
+        pools.push(PoolInfo("King",   6000 * 10**dec, 16, 0));
+        pools.push(PoolInfo("Queen",  9000 * 10**dec, 21, 0));
+        totalWeight = 50;
 
-    }
-
-    function initialize(uint256 time) external onlyOwner notInitialized {
-        require(time >= block.timestamp, "IDO Can't Be in Past");
-        regStarts = time;
-        saleStarts = regStarts + saleStartsAfter;
-        require(idoToken.balanceOf(address(this)) >= idoTokenSum, "Not Enough Tokens In Contract");
-
-        emit Initialization(regStarts, saleStarts);
     }
 
     function register(uint256 _poolNo) 
@@ -123,7 +115,7 @@ abstract contract IDO is Ownable, ReentrancyGuard {
     validRegistration 
     verifyPool(_poolNo)
     nonReentrant {
-        iStaker.lock(msg.sender, block.timestamp + lockDuration);
+        iStaker.lock(msg.sender, saleStarts + saleDuration + lockDuration);
         _register(msg.sender, _poolNo);
     }
 
@@ -174,6 +166,9 @@ abstract contract IDO is Ownable, ReentrancyGuard {
     // This will be implemented in RaffleWrap
     function _raffleAllocation(address account) internal view virtual returns(uint256 tokens, uint256 price);
 
+    // This will be implemented in DEXWrap
+    function _DEXAction() internal virtual;
+
     function buyNow() external 
     payable 
     validSale
@@ -187,20 +182,9 @@ abstract contract IDO is Ownable, ReentrancyGuard {
         remainingIDOTokens -= amount;
         idoToken.transfer(msg.sender, amount);
 
+        _DEXAction();
+
         emit Purchase(msg.sender, amount, price);
-    }
-
-    function recoverEth(address to) external onlyOwner {
-        (bool sent,) = address(to).call{value : address(this).balance}("");
-        require(sent, 'Unable To Recover Eth');
-    }
-
-    function recoverERC20(
-        address tokenAddress, 
-        address to
-    ) external onlyOwner {
-        IERC20Metadata tok = IERC20Metadata(tokenAddress);
-        tok.transfer(to, tok.balanceOf(address(this)));
     }
 
 }

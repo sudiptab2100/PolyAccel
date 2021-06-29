@@ -86,7 +86,7 @@ abstract contract Random is VRFConsumerBase {
 
 }
 
-contract RaffleWrap is IDO, Random {
+abstract contract RaffleWrap is IDO, Random {
 
     uint256 public ticketsSold; // No of tickets sold
     mapping(uint256 => address) public ticketToOwner; // owner of a ticket
@@ -173,8 +173,7 @@ contract RaffleWrap is IDO, Random {
             address account = list[i];
             uint256 _poolNo = RAFFLE_POOL; // Raffle Entry Pool
 
-            if(!getRegistrationStatus(account)) _register(account, _poolNo);
-            else if(getPoolNo(account) != RAFFLE_POOL) {
+            if(!hasWonRaffle[account] && getPoolNo(account) != _poolNo) {
                 hasWonRaffle[account] = true;
                 pools[_poolNo].participants++;
             }
@@ -196,6 +195,12 @@ contract RaffleWrap is IDO, Random {
     function getWinners() external view returns(address[] memory) {
         require(isFulfilled(), "Winner Not Decided Yet");
         return _getWinners();
+    }
+
+    function getTicketsWon() external view returns(uint256[] memory) {
+        require(isFulfilled(), "Winner Not Decided Yet");
+        uint256 n = _noOfWinners(ticketsSold);
+        return _randomList(0, ticketsSold, n);
     }
 
     // Calculates The Number Of Winners

@@ -143,6 +143,10 @@ contract RaffleWrapTest is IDO, RandomTest {
         
     }
 
+    function _DEXAction() internal override {
+        
+    }
+
     // Generates The Random Winners
     function genRandom() external once raffleResultPeriod nonReentrant {
         uint256 seed = uint256(keccak256(abi.encodePacked(msg.sender)));

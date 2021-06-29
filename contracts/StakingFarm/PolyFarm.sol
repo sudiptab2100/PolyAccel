@@ -125,7 +125,7 @@ contract PolyFarm is ReentrancyGuard, Pausable, Ownable {
         uint256 fee = reward.mul(feePercentage).div(100);
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            rewardsToken.safeTransfer(owner(), reward.sub(fee));
+            rewardsToken.safeTransfer(owner(), fee);
             rewardsToken.safeTransfer(msg.sender, reward.sub(fee));
             emit RewardPaid(msg.sender, reward);
         }
