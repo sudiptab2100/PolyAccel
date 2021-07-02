@@ -446,7 +446,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
 pragma solidity ^0.8.0;
 
 
-contract PolCoin is ERC20 {
+contract PolyAccel is ERC20 {
 
     constructor () ERC20("Pol Coin", "PoCo") {
         _mint(msg.sender, 10000000 * (10 ** uint256(decimals())));

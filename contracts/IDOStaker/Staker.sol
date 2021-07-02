@@ -6,9 +6,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "./../interfaces/IStaker.sol";
-
-contract Staker is Ownable, IStaker {
+contract Staker is Ownable {
     using SafeMath for uint256;
     using Address for address;
     
@@ -26,11 +24,11 @@ contract Staker is Ownable, IStaker {
         _token = IERC20(_tokenAddress);
     }
 
-    function stakedBalance(address account) external view override returns (uint256) {
+    function stakedBalance(address account) external view returns (uint256) {
         return _balances[account];
     }
 
-    function unlockTime(address account) external view override returns (uint256) {
+    function unlockTime(address account) external view returns (uint256) {
         return _unlockTime[account];
     }
 
@@ -54,7 +52,7 @@ contract Staker is Ownable, IStaker {
         emit Unstake(_msgSender(), block.timestamp, value);
     }
 
-    function lock(address user, uint256 unlock_time) external override onlyIDO {
+    function lock(address user, uint256 unlock_time) external onlyIDO {
         require(unlock_time >  block.timestamp, "Staker: unlock is in the past");
         if (_unlockTime[user] < unlock_time) {
             _unlockTime[user] = unlock_time;

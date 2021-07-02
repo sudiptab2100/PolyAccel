@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import './../interfaces/IStaker.sol';
+import './Staker.sol';
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 abstract contract IDO is Ownable, ReentrancyGuard {
 
-    IStaker public iStaker;
+    Staker public staker;
     IERC20Metadata public nativeToken; // The token staked
     IERC20Metadata public idoToken; // The token sale in iDO
     uint256 public idoTokenSum; // Amount of Tokens to be Sold
     uint256 public idoTotalPrice; // Price of 1 Tokens in Wei
 
+    uint256 public totalPoolShares; // Total no of pool shares
     uint256 public remainingIDOTokens; // Tokens Not Sold Yet
 
     // Time Stamps
@@ -47,12 +48,11 @@ abstract contract IDO is Ownable, ReentrancyGuard {
         uint256 participants;
     } 
     PoolInfo[] public pools;
-    uint256 public totalWeight;
 
     modifier verifyPool(uint256 _poolNo) {
         require(1 <= _poolNo && _poolNo <= 5, "invalid Pool no");
 
-        uint256 stakedAmount = iStaker.stakedBalance(msg.sender);
+        uint256 stakedAmount = staker.stakedBalance(msg.sender);
         require(pools[_poolNo].minNativeToken <= stakedAmount, "Can't Participate in the Pool");
 
         _;
@@ -91,7 +91,7 @@ abstract contract IDO is Ownable, ReentrancyGuard {
         uint256 _price
     ) {
         
-        iStaker = IStaker(_stakerAddress);
+        staker = Staker(_stakerAddress);
         nativeToken = IERC20Metadata(_nativeTokenAddress);
         idoToken = IERC20Metadata(_idoTokenAddress);
         idoTokenSum = _idoTokenSum;
@@ -106,7 +106,6 @@ abstract contract IDO is Ownable, ReentrancyGuard {
         pools.push(PoolInfo("Rook",   3000 * 10**dec, 8,  0));
         pools.push(PoolInfo("King",   6000 * 10**dec, 16, 0));
         pools.push(PoolInfo("Queen",  9000 * 10**dec, 21, 0));
-        totalWeight = 50;
 
     }
 
@@ -115,7 +114,7 @@ abstract contract IDO is Ownable, ReentrancyGuard {
     validRegistration 
     verifyPool(_poolNo)
     nonReentrant {
-        iStaker.lock(msg.sender, saleStarts + saleDuration + lockDuration);
+        staker.lock(msg.sender, saleStarts + saleDuration + lockDuration);
         _register(msg.sender, _poolNo);
     }
 
@@ -123,6 +122,7 @@ abstract contract IDO is Ownable, ReentrancyGuard {
         userlog[account].isRegistered = true;
         userlog[account].registeredPool = _poolNo;
         pools[_poolNo].participants += 1;
+        totalPoolShares += pools[_poolNo].weight;
         
         participantList.push(account);
 
@@ -143,14 +143,15 @@ abstract contract IDO is Ownable, ReentrancyGuard {
 
     function tokensAndPriceByPoolNo(uint256 _poolNo) public view returns(uint256, uint256) {
 
-        PoolInfo storage pool = pools[_poolNo];
+        PoolInfo memory pool = pools[_poolNo];
+        uint256 poolWeight = pool.weight;
 
         if(_poolNo == 0 || pool.participants == 0) {
             return (0, 0);
         }
 
-        uint256 tokenAmount = (idoTokenSum * pool.weight) / (totalWeight * pool.participants); // Token Amount per Participants
-        uint256 price = (idoTotalPrice * pool.weight) / (totalWeight * pool.participants); // Token Amount per Participants
+        uint256 tokenAmount = (idoTokenSum * poolWeight) / totalPoolShares; // Token Amount per Participants
+        uint256 price = (idoTotalPrice * poolWeight) / totalPoolShares; // Token Amount per Participants
 
         return (tokenAmount, price);
     }

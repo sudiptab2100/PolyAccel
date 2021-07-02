@@ -176,6 +176,7 @@ abstract contract RaffleWrap is IDO, Random {
             if(!hasWonRaffle[account] && getPoolNo(account) != _poolNo) {
                 hasWonRaffle[account] = true;
                 pools[_poolNo].participants++;
+                totalPoolShares += pools[_poolNo].weight;
             }
         }
     }
