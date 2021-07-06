@@ -130,7 +130,7 @@ abstract contract RaffleWrap is IDO, Random {
     function buyTickets(uint256 _noOfTickets) external raffleParticipationPeriod nonReentrant {
         require(isRaffleEligible(msg.sender), "Already Participated In IDO");
         uint256 nextTicket = ticketsSold;
-        nativeToken.transferFrom(msg.sender, owner(), _noOfTickets * ticketPrice);
+        nativeToken.transferFrom(msg.sender, treasuryAddress, _noOfTickets * ticketPrice);
 
         for(uint256 i=0; i<_noOfTickets; i++) {
             ticketToOwner[nextTicket + i] = msg.sender;

@@ -16,6 +16,7 @@ abstract contract IDO is Ownable, ReentrancyGuard {
 
     uint256 public totalPoolShares; // Total no of pool shares
     uint256 public remainingIDOTokens; // Tokens Not Sold Yet
+    address public treasuryAddress = 0x27380034Afa75eC72652769112800619E7C8bAFe;
 
     // Time Stamps
     uint256 public constant unit = 1 hours; // use seconds for testing
@@ -167,9 +168,6 @@ abstract contract IDO is Ownable, ReentrancyGuard {
     // This will be implemented in RaffleWrap
     function _raffleAllocation(address account) internal view virtual returns(uint256 tokens, uint256 price);
 
-    // This will be implemented in DEXWrap
-    function _DEXAction() internal virtual;
-
     function buyNow() external 
     payable 
     validSale
@@ -182,8 +180,6 @@ abstract contract IDO is Ownable, ReentrancyGuard {
         usr.purchased = true;
         remainingIDOTokens -= amount;
         idoToken.transfer(msg.sender, amount);
-
-        _DEXAction();
 
         emit Purchase(msg.sender, amount, price);
     }

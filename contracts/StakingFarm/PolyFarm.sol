@@ -22,6 +22,7 @@ contract PolyFarm is ReentrancyGuard, Pausable, Ownable {
     uint256 public lastUpdateTime;
     uint256 public rewardPerTokenStored;
     uint256 public feePercentage = 10;
+    address public treasuryAddress = 0x27380034Afa75eC72652769112800619E7C8bAFe;
 
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
@@ -125,7 +126,7 @@ contract PolyFarm is ReentrancyGuard, Pausable, Ownable {
         uint256 fee = reward.mul(feePercentage).div(100);
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            rewardsToken.safeTransfer(owner(), fee);
+            rewardsToken.safeTransfer(treasuryAddress, fee);
             rewardsToken.safeTransfer(msg.sender, reward.sub(fee));
             emit RewardPaid(msg.sender, reward);
         }
